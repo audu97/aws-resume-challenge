@@ -1,0 +1,7 @@
+name: aws-resume-challenge
+runtime: go
+description: aws resume challenge
+config:
+  pulumi:tags:
+    value:
+      pulumi:template: aws-go
