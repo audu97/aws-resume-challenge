@@ -60,42 +60,6 @@ func NewS3Folder(ctx *pulumi.Context, bucketName string, siteDir string, args *F
 		return nil, err
 	}
 
-	// Allow public ACLs for the bucket
-	accessBlock, err := s3.NewBucketPublicAccessBlock(ctx, "public-access-block", &s3.BucketPublicAccessBlockArgs{
-		Bucket:          siteBucket.ID(),
-		BlockPublicAcls: pulumi.Bool(false),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	// Set the access policy for the bucket so all objects are readable.
-	if _, err := s3.NewBucketPolicy(ctx, "bucketPolicy", &s3.BucketPolicyArgs{
-		Bucket: siteBucket.ID(), // refer to the bucket created earlier
-		Policy: pulumi.Any(map[string]interface{}{
-			"Version": "2012-10-17",
-			"Statement": []map[string]interface{}{
-				{
-					"Effect":    "Allow",
-					"Principal": "*",
-					"Action": []interface{}{
-						"s3:GetObject",
-					},
-					"Resource": []interface{}{
-						pulumi.Sprintf("arn:aws:s3:::%s/*", siteBucket.ID()), // policy refers to bucket name explicitly
-					},
-				},
-			},
-		}),
-	}, pulumi.Parent(&resource), pulumi.DependsOn([]pulumi.Resource{accessBlock})); err != nil {
-		return nil, err
-	}
-	resource.bucketName = siteBucket.ID()
-	resource.websiteUrl = siteBucket.WebsiteEndpoint
-	ctx.RegisterResourceOutputs(&resource, pulumi.Map{
-		"bucketName": siteBucket.ID(),
-		"websiteUrl": siteBucket.WebsiteEndpoint,
-	})
 	return &resource, nil
 }
 
@@ -106,5 +70,6 @@ type FolderArgs struct {
 }
 
 func (FolderArgs) ElementType() reflect.Type {
+
 	return reflect.TypeOf((*folderArgs)(nil)).Elem()
 }
